@@ -34,12 +34,17 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(testing)
 
-find_package(Doxygen REQUIRED)
+find_package(Doxygen)
 
-set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
+if(DOXYGEN_FOUND)
+    set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
 
-doxygen_add_docs(
-    doxygen
-    "corned-beef.hpp"
-    COMMENT "Generate documentation"
-)
+    doxygen_add_docs(
+        doxygen
+        "corned-beef.hpp"
+        ALL
+        COMMENT "Generate documentation"
+    )
+else()
+    message("Doxygen not found, cannot generate documents")
+endif()
