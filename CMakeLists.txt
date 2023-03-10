@@ -33,3 +33,13 @@ target_link_libraries(
 
 include(GoogleTest)
 gtest_discover_tests(testing)
+
+find_package(Doxygen REQUIRED)
+
+set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
+
+doxygen_add_docs(
+    doxygen
+    "corned-beef.hpp"
+    COMMENT "Generate documentation"
+)
