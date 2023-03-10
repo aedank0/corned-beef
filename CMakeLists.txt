@@ -34,7 +34,7 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(testing)
 
-find_package(Doxygen REQUIRED)
+find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
