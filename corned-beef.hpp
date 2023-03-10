@@ -43,12 +43,10 @@ namespace corned_beef
     };
     
     /**
-     * @brief Hash for floating point types
-     * 
-     * @tparam T Floating point type
+     * @brief Hash for double
      */
-    template<std::floating_point T>
-    struct Hash<T>
+    template<>
+    struct Hash<double>
     {
         /**
          * @brief Hash function
@@ -56,9 +54,27 @@ namespace corned_beef
          * @param val Value to be hashed
          * @return constexpr std::size_t Hashing result
          */
-        constexpr std::size_t operator()(T val) const
+        constexpr std::size_t operator()(double val) const
         {
             return std::bit_cast<std::size_t>(val);
+        }
+    };
+
+    /**
+     * @brief Hash for float
+     */
+    template<>
+    struct Hash<float>
+    {
+        /**
+         * @brief Hash function
+         * 
+         * @param val Value to be hashed
+         * @return constexpr std::size_t Hashing result
+         */
+        constexpr std::size_t operator()(float val) const
+        {
+            return std::bit_cast<std::uint32_t>(val);
         }
     };
 
