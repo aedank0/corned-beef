@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <cstring>
 
-static_assert(sizeof(std::size_t) == 8);
+static_assert(sizeof(std::size_t) == 8, "Not on a 64-bit system");
 
 namespace corned_beef
 {
