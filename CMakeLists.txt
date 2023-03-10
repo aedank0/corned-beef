@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(corned-beef INTERFACE corned-beef.hpp)
+add_library(corned-beef INTERFACE corned_beef.hpp)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -41,7 +41,7 @@ if(DOXYGEN_FOUND)
 
     doxygen_add_docs(
         doxygen
-        "corned-beef.hpp"
+        "corned_beef.hpp"
         ALL
         COMMENT "Generate documentation"
     )

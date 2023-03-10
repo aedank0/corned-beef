@@ -1,6 +1,6 @@
 //See LICENSE file for licensing info
 
-#include "corned-beef.hpp"
+#include "corned_beef.hpp"
 
 #include <limits>
 #include <cstdint>
