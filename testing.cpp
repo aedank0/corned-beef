@@ -5,6 +5,7 @@
 #include <limits>
 #include <cstdint>
 #include <type_traits>
+#include <unordered_set>
 
 #include "gtest/gtest.h"
 
@@ -51,4 +52,22 @@ TEST(BasicHashTest, TrivialHash)
     auto aHash = cb::HashThis(a), bHash = cb::HashThis(b);
 
     EXPECT_NE(aHash, bHash) << aHash << " != " << bHash;
+}
+
+TEST(BasicHashTest, UnorderedSet)
+{
+    std::unordered_set<int, cb::Hash<int>> testSet;
+
+    EXPECT_NO_THROW(testSet.emplace(1));
+    EXPECT_NO_THROW(testSet.emplace(5));
+    EXPECT_NO_THROW(testSet.emplace(105));
+    EXPECT_NO_THROW(testSet.emplace(1029487));
+    EXPECT_NO_THROW(testSet.emplace(-12947));
+
+    EXPECT_NE(testSet.find(5), testSet.end());
+    EXPECT_NE(testSet.find(105), testSet.end());
+    EXPECT_NE(testSet.find(1029487), testSet.end());
+    EXPECT_NE(testSet.find(-12947), testSet.end());
+
+    EXPECT_EQ(testSet.find(185892), testSet.end());
 }
