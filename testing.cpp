@@ -75,7 +75,7 @@ TEST(BasicHashTest, UnorderedSet)
     EXPECT_EQ(testSet.find(185892), testSet.end());
 }
 
-TEST(BasicHashTest, StringHash)
+TEST(BasicHashTest, String)
 {
     EXPECT_NE(cb::HashThis(std::string("test1\U0001f643")), cb::HashThis(std::string("test2\U0001f643")));
 }
@@ -83,6 +83,16 @@ TEST(BasicHashTest, StringHash)
 TEST(BasicHashTest, ASCII)
 {
     EXPECT_NE((cb::HashThis<std::string, cb::HashASCII>(std::string("test1"))), (cb::HashThis<std::string, cb::HashASCII>(std::string("test2"))));
+}
+
+TEST(BasicHashTest, CStr)
+{
+    EXPECT_NE((cb::HashThis<const char*, cb::HashCStr>("test1\U0001f643")), (cb::HashThis<const char*, cb::HashCStr>("test2\U0001f643")));
+}
+
+TEST(BasicHashTest, CStrASCII)
+{
+    EXPECT_NE((cb::HashThis<const char*, cb::HashCStrASCII>("test1")), (cb::HashThis<const char*, cb::HashCStrASCII>("test2")));
 }
 
 class HashCompareTest : public ::testing::Test

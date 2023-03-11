@@ -197,6 +197,60 @@ namespace corned_beef
     };
 
     /**
+     * @brief Hash for c-strings
+     * 
+     */
+    struct HashCStr
+    {
+        /**
+         * @brief Hash fucntion
+         * 
+         * @param str C-String input
+         * @return std::size_t Hashing result
+         */
+        constexpr std::size_t operator()(const char* str) const
+        {
+            std::size_t retVal = 0;
+
+            std::uint_fast8_t offset = 0;
+            for (std::size_t i = 0; str[i]; ++i)
+            {
+                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
+                offset = (offset + 7) & 63;
+            }
+
+            return retVal;
+        }
+    };
+
+    /**
+     * @brief Hash for ascii only c-strings
+     * 
+     */
+    struct HashCStrASCII
+    {
+        /**
+         * @brief Hash fucntion
+         * 
+         * @param str C-string input
+         * @return std::size_t Hashing result
+         */
+        constexpr std::size_t operator()(const char* str) const
+        {
+            std::size_t retVal = 0;
+
+            std::uint_fast8_t offset = 0;
+            for (std::size_t i = 0; str[i]; ++i)
+            {
+                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
+                offset = (offset + 7) & 63;
+            }
+
+            return retVal;
+        }
+    };
+
+    /**
      * @brief Hashes given value of type T with hasher of type HashType
      * 
      * @tparam T Type of value to be hashed
@@ -213,8 +267,6 @@ namespace corned_beef
     {
         return HashType{}(val);
     }
-
-    
 }
 
 #endif
