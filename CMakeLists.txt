@@ -32,7 +32,7 @@ target_link_libraries(
 )
 
 include(GoogleTest)
-gtest_discover_tests(testing)
+gtest_discover_tests(testing WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
 find_package(Doxygen)
 

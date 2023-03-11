@@ -6,6 +6,7 @@
 #include <bit>
 #include <type_traits>
 #include <cstring>
+#include <string>
 
 static_assert(sizeof(std::size_t) == 8, "Not on a 64-bit system");
 
@@ -124,7 +125,7 @@ namespace corned_beef
          * @param val Value to be hashed
          * @return std::size_t Hashing result
          */
-        constexpr std::size_t operator()(T val) const
+        constexpr std::size_t operator()(const T& val) const
         {
             const std::size_t size = NextNDivBy8(sizeof(T));
             const std::size_t count = size >> 3;
@@ -137,6 +138,58 @@ namespace corned_beef
             for (size_t i = 1; i < count; ++i)
             {
                 retVal = CombineHashes(retVal, data[i], i & 64);
+            }
+
+            return retVal;
+        }
+    };
+
+    /**
+     * @brief Hash for std::string
+     */
+    template<>
+    struct Hash<std::string>
+    {
+        /**
+         * @brief Hash fucntion
+         * 
+         * @param str String input
+         * @return std::size_t Hashing result
+         */
+        constexpr std::size_t operator()(const std::string& str) const
+        {
+            std::size_t retVal = 0;
+
+            for (std::size_t i = 0; i < str.size(); ++i)
+            {
+                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), ((static_cast<std::uint_fast8_t>(i & 0b111) << 3) + (static_cast<std::uint_fast8_t>(i & 0b11111100) >> 2)));
+            }
+
+            return retVal;
+        }
+    };
+
+    /**
+     * @brief Hash for ascii only strings
+     * 
+     */
+    struct HashASCII
+    {
+        /**
+         * @brief Hash fucntion
+         * 
+         * @param str String input
+         * @return std::size_t Hashing result
+         */
+        constexpr std::size_t operator()(const std::string& str) const
+        {
+            std::size_t retVal = 0;
+
+            std::uint_fast8_t offset = 0;
+            for (std::size_t i = 0; i < str.size(); ++i)
+            {
+                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
+                offset = (offset + 7) & 63;
             }
 
             return retVal;
@@ -160,6 +213,8 @@ namespace corned_beef
     {
         return HashType{}(val);
     }
+
+    
 }
 
 #endif

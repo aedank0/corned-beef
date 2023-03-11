@@ -6,6 +6,9 @@
 #include <cstdint>
 #include <type_traits>
 #include <unordered_set>
+#include <fstream>
+#include <sstream>
+#include <functional>
 
 #include "gtest/gtest.h"
 
@@ -70,4 +73,38 @@ TEST(BasicHashTest, UnorderedSet)
     EXPECT_NE(testSet.find(-12947), testSet.end());
 
     EXPECT_EQ(testSet.find(185892), testSet.end());
+}
+
+TEST(BasicHashTest, StringHash)
+{
+    EXPECT_NE(cb::HashThis(std::string("test1\U0001f643")), cb::HashThis(std::string("test2\U0001f643")));
+}
+
+TEST(BasicHashTest, ASCII)
+{
+    EXPECT_NE((cb::HashThis<std::string, cb::HashASCII>(std::string("test1"))), (cb::HashThis<std::string, cb::HashASCII>(std::string("test2"))));
+}
+
+class HashCompareTest : public ::testing::Test
+{
+    protected:
+    std::string str;
+
+    void SetUp() override
+    {
+        std::ifstream f("large_text.txt");
+        std::stringstream buffer;
+        buffer << f.rdbuf();
+        str = buffer.str();
+    }
+};
+
+TEST_F(HashCompareTest, STLHash)
+{
+    EXPECT_NO_THROW(std::hash<std::string>{}(str));
+}
+
+TEST_F(HashCompareTest, CBHash)
+{
+    EXPECT_NO_THROW(cb::HashThis(str));
 }
