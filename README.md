@@ -3,7 +3,7 @@ A problem with using STL's built in hashing faculties is that the standard makes
 
 ### Requirements
 Using CornedBeefHash requires C++20 and the standard library.
-If you wish to work on the project you'll also need Doxygen installed, more info in `CONTRIBUTING.md`.
+If you wish to work on the project you'll need some additional things, see `CONTRIBUTING.md`.
 
 ### Usage
 Simply copy corned_beef.hpp into your project and include where needed! It's recommended to use file from the main branch. See below for a small example.
