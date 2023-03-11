@@ -23,12 +23,15 @@ namespace corned_beef
         constexpr Hash() = default;
     };
 
+    template<typename T>
+    concept BasicValue = std::integral<T> || std::is_pointer_v<T>;
+
     /**
      * @brief Hash for integral types
      * 
      * @tparam T Integral type
      */
-    template<std::integral T>
+    template<BasicValue T>
     struct Hash<T>
     {
         /**
