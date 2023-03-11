@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(corned-beef INTERFACE corned_beef.hpp)
+target_compile_features(corned-beef INTERFACE cxx_std_20)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -24,6 +25,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(testing testing.cpp)
+target_compile_features(testing PRIVATE cxx_std_20)
 
 target_link_libraries(
     testing

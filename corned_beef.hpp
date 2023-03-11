@@ -163,7 +163,7 @@ namespace corned_beef
         {
             std::size_t retVal = 0;
 
-            for (std::size_t i = 0; str[i]; ++i)
+            for (std::size_t i = 0; i < str.size(); ++i)
             {
                 retVal ^= std::rotl(static_cast<std::size_t>(str[i]), ((static_cast<std::uint_fast8_t>(i & 0b111) << 3) + (static_cast<std::uint_fast8_t>(i & 0b11111100) >> 2)));
             }
@@ -189,7 +189,7 @@ namespace corned_beef
             std::size_t retVal = 0;
 
             std::uint_fast8_t offset = 0;
-            for (std::size_t i = 0; str[i]; ++i)
+            for (std::size_t i = 0; i < str.size(); ++i)
             {
                 retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
                 offset = (offset + 7) & 63;
