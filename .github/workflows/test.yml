@@ -1,0 +1,15 @@
+name: test
+
+on: workflow_dispatch
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  ver-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check version
+      run: gcc --version
+      
