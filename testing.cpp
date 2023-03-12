@@ -9,6 +9,9 @@
 #include <fstream>
 #include <sstream>
 #include <functional>
+#include <vector>
+#include <iostream>
+#include <tuple>
 
 #include "gtest/gtest.h"
 
@@ -95,10 +98,11 @@ TEST(BasicHashTest, CStrASCII)
     EXPECT_NE((cb::HashThis<const char*, cb::HashCStrASCII>("test1")), (cb::HashThis<const char*, cb::HashCStrASCII>("test2")));
 }
 
-class HashCompareTest : public ::testing::Test
+class HashStringTest : public ::testing::Test
 {
     protected:
     std::string str;
+    std::vector<std::string> wordlist;
 
     void SetUp() override
     {
@@ -106,15 +110,77 @@ class HashCompareTest : public ::testing::Test
         std::stringstream buffer;
         buffer << f.rdbuf();
         str = buffer.str();
+
+        #ifdef CB_COMPILE_COLLISION_TESTS
+        wordlist.reserve(69903);
+        f = std::ifstream("wordlist.txt");
+        while(f)
+        {
+            std::string s;
+            f >> s;
+            wordlist.emplace_back(s);
+        }
+        #endif
+    }
+
+    template<typename HashF>
+    void testCollisions(const char* name, std::function<std::size_t(const std::string&)> stringHash)
+    {
+        std::unordered_set<std::size_t, HashF> prevSeen;
+        std::size_t countSeen = 0;
+        for (const auto& s : wordlist)
+        {
+            bool seen = false;
+            std::tie(std::ignore, seen) = prevSeen.insert(stringHash(str));
+            if (seen)
+                ++countSeen;
+        }
+
+        std::cout << name << " had " << countSeen << " collisions out of " << wordlist.size() << " entries for a collision rate of " << static_cast<double>(countSeen) / wordlist.size() << std::endl;
     }
 };
 
-TEST_F(HashCompareTest, STLHash)
+TEST_F(HashStringTest, STLHash)
 {
     EXPECT_NO_THROW(std::hash<std::string>{}(str));
 }
 
-TEST_F(HashCompareTest, CBHash)
+TEST_F(HashStringTest, CBHash)
 {
     EXPECT_NO_THROW(cb::HashThis(str));
 }
+
+TEST_F(HashStringTest, CBHashASCII)
+{
+    EXPECT_NO_THROW((cb::HashThis<std::string, cb::HashASCII>(str)));
+}
+TEST_F(HashStringTest, CBHashCStr)
+{
+    EXPECT_NO_THROW((cb::HashThis<const char*, cb::HashCStr>(str.c_str())));
+}
+
+TEST_F(HashStringTest, CBHashCStrASCII)
+{
+    EXPECT_NO_THROW((cb::HashThis<const char*, cb::HashCStrASCII>(str.c_str())));
+}
+
+#ifdef CB_COMPILE_COLLISION_TESTS
+TEST_F(HashStringTest, STLCollisions)
+{
+    GTEST_SKIP() << "Skipping STL Collisions check (very time consuming)";
+    testCollisions<std::hash<std::size_t>>("STL Hash", [](const std::string& s) { return std::hash<std::string>{}(s); });
+}
+
+TEST_F(HashStringTest, CBCollisions)
+{
+    GTEST_SKIP() << "Skipping CB Collisions check (very time consuming)";
+    testCollisions<std::hash<std::size_t>>("CB Hash", cb::HashThis<std::string, cb::Hash<std::string>>);
+}
+
+TEST_F(HashStringTest, CBCollisionsASCII)
+{
+    GTEST_SKIP() << "Skipping CB ASCII Collisions check (very time consuming)";
+    testCollisions<std::hash<std::size_t>>("CB ASCII Hash", cb::HashThis<std::string, cb::HashASCII>);
+}
+#endif
+
