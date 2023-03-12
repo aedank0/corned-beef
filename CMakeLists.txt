@@ -38,15 +38,19 @@ gtest_discover_tests(testing WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
 find_package(Doxygen)
 
-if(DOXYGEN_FOUND)
-    set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
+if(NOT DEFINED CB_NO_DOCS)
+    if(DOXYGEN_FOUND)
+        set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
 
-    doxygen_add_docs(
-        doxygen
-        "corned_beef.hpp"
-        ALL
-        COMMENT "Generate documentation"
-    )
+        doxygen_add_docs(
+            doxygen
+            "corned_beef.hpp"
+            ALL
+            COMMENT "Generate documentation"
+        )
+    else()
+        message("Doxygen not found, cannot generate documents")
+    endif()
 else()
-    message("Doxygen not found, cannot generate documents")
+    unset(CB_NO_DOCS)
 endif()
