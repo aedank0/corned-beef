@@ -24,6 +24,7 @@
 #include <string>
 #include <limits>
 
+//CB_XOR_OPERAND should be an integer if it is defined. If it is defined, the output of all hashes will be XOR'd by the value.
 #ifdef CB_XOR_OPERAND
 #define CB_XOR_VALUE(x) x ^ CB_XOR_OPERAND
 #else
@@ -46,6 +47,12 @@ namespace corned_beef
     template<typename T>
     concept BasicValue = std::integral<T> || std::is_pointer_v<T>;
 
+    /**
+     * @brief Squishes a 64-bit number into a 32-bit one
+     * 
+     * @param v Value to be squished
+     * @return std::uint32_t Result
+     */
     constexpr std::uint32_t Squish64To32Bit(std::uint64_t v)
     {
         return (v & std::numeric_limits<std::uint32_t>::max()) ^ (v >> 32);
@@ -121,14 +128,18 @@ namespace corned_beef
     template<typename T>
     concept TrivialCopy = std::is_trivially_copyable_v<T> && (sizeof(T) > 0) && !std::floating_point<T> && !std::integral<T>;
 
+    //CONSTANT ZONE --- Use these instead of assuming 64-bit
+
     static constexpr std::size_t ONE_LESS_SIZE = sizeof(std::size_t) - 1;
     static constexpr std::size_t LOG2_SIZE = 2 | (sizeof(std::size_t) >> 3);
     static constexpr std::size_t SIZE_BITS = sizeof(std::size_t) >> LOG2_SIZE;
     static constexpr std::size_t SIZE_BITS_SUB_ONE = SIZE_BITS - 1;
     static constexpr std::size_t SIZE_BITS_SUB_ONE_LSH_TWO = SIZE_BITS_SUB_ONE << 2;
 
+    //END CONSTANT ZONE
+
     /**
-     * @brief Calculates next number divisible by 8
+     * @brief Calculates next number divisible by the size of std::size_t
      * 
      * @param val Value
      * @return consteval std::size_t Calculated value
@@ -139,11 +150,11 @@ namespace corned_beef
     }
 
     /**
-     * @brief Combines two hashes together
+     * @brief Combines two hashes together after first doing a circular rotation on b by rotAmt bits
      * 
      * @param a First hash
      * @param b Second hash
-     * @param rotAmt Amount to rotate second hash before combining
+     * @param rotAmt Amount to rotate second hash before combining (in bits)
      * @return constexpr std::size_t Resulting hash
      */
     static constexpr std::size_t CombineHashes(std::size_t a, std::size_t b, int rotAmt = 32)
