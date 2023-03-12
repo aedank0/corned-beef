@@ -6,7 +6,7 @@ Using CornedBeefHash requires C++20 and the standard library. The CMake and sour
 If you wish to work on the project you'll need some additional things, see [`CONTRIBUTING.md`](https://github.com/aedank0/corned-beef/blob/e946ea2e2e76ddd9a21b961203cf37a1293acff2/CONTRIBUTING.md) for more.
 
 ### Usage
-Simply copy corned_beef.hpp into your project and include where needed! It's recommended to use file from the main branch as it's the most up to date with features and fixes, but there's also the releases if you want an older version (for some reason). See below for a small code example.
+Simply copy corned_beef.hpp into your project and include where needed! It's recommended to use file from the main branch as it's the most up to date with features and fixes, but there's also the releases if you want an older version (for some reason). See the bottom of this document for a small code example.
 
 ### Documentation
 Documentation is available in the repo for download and offline usage, as well as online [here](https://aedank0.github.io/corned-beef/docs/html/).
@@ -14,6 +14,16 @@ Documentation is available in the repo for download and offline usage, as well a
 ### Contribution
 Contributions are welcomed!
 Please read [`CONTRIBUTING.md`](https://github.com/aedank0/corned-beef/blob/e946ea2e2e76ddd9a21b961203cf37a1293acff2/CONTRIBUTING.md) for details.
+
+## Attributions
+#### GoogleTest
+GoogleTest is used for testing. Their repository can be found [here](https://github.com/google/googletest).
+#### Doxygen
+Doxygen-style comments are used in the code to generate the documentation. Doxygen's website can be found [here](https://www.doxygen.nl/).
+#### large_text.txt
+The text from large_text.txt is a copy of Romeo and Juliet by Shakespeare obtained from [here](http://shakespeare.mit.edu/romeo_juliet/full.html).
+#### wordlist.txt
+wordlist.txt was created by John Lawler and was obtained from [here](https://www-personal.umich.edu/~jlawler/wordlist.html).
 
 ## Example
 ```
