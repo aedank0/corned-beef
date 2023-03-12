@@ -1,7 +1,6 @@
 name: Build testing
 
 on:
-
   push:
     branches: [ "main" ]
   pull_request:
