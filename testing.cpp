@@ -181,19 +181,16 @@ TEST_F(HashStringTest, CBHashCStrASCII)
 #ifdef CB_COMPILE_COLLISION_TESTS
 TEST_F(HashStringTest, STLCollisions)
 {
-    GTEST_SKIP() << "Skipping STL Collisions check (very time consuming)";
     testCollisions<std::hash<std::size_t>>("STL Hash", [](const std::string& s) { return std::hash<std::string>{}(s); });
 }
 
 TEST_F(HashStringTest, CBCollisions)
 {
-    GTEST_SKIP() << "Skipping CB Collisions check (very time consuming)";
     testCollisions<std::hash<std::size_t>>("CB Hash", cb::HashThis<std::string, cb::Hash<std::string>>);
 }
 
 TEST_F(HashStringTest, CBCollisionsASCII)
 {
-    GTEST_SKIP() << "Skipping CB ASCII Collisions check (very time consuming)";
     testCollisions<std::hash<std::size_t>>("CB ASCII Hash", cb::HashThis<std::string, cb::HashASCII>);
 }
 #endif

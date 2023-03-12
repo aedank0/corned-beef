@@ -38,7 +38,10 @@ gtest_discover_tests(testing WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
 find_package(Doxygen)
 
-if(NOT DEFINED CB_NO_DOCS)
+option(CB_BUILD_DOCS "Should documentation be build (most likely yes!)" ON)
+option(CB_COMPILE_COLLISION_TESTS "Should collision tests be compiled?")
+
+if(CB_BUILD_DOCS)
     if(DOXYGEN_FOUND)
         set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
 
@@ -51,6 +54,12 @@ if(NOT DEFINED CB_NO_DOCS)
     else()
         message("Doxygen not found, cannot generate documents")
     endif()
-else()
-    unset(CB_NO_DOCS)
+endif()
+
+if(CB_COMPILE_COLLISION_TESTS)
+    target_compile_definitions(testing PRIVATE CB_COMPILE_COLLISION_TESTS)
+endif()
+
+if(DEFINED CB_XOR_OPERAND)
+    target_compile_definitions(corned-beef INTERFACE CB_XOR_OPERAND=${CB_XOR_OPERAND})
 endif()
