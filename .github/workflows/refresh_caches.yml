@@ -35,6 +35,7 @@ jobs:
       id: save
       with:
         key: linux-${{ github.sha }}
+        path: ${{github.workspace}}/build
   windows-cache-update:
     runs-on: windows-latest
     
@@ -61,6 +62,7 @@ jobs:
       id: save
       with:
         key: windows-${{ github.sha }}
+        path: ${{github.workspace}}/build
       
         
       
