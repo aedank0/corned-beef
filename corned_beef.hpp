@@ -24,8 +24,6 @@
 #include <string>
 #include <limits>
 
-static_assert(sizeof(std::size_t) == 8, "Not on a 64-bit system");
-
 #ifdef CB_XOR_OPERAND
 #define CB_XOR_VALUE(x) x ^ CB_XOR_OPERAND
 #else
