@@ -7,8 +7,15 @@
 #include <type_traits>
 #include <cstring>
 #include <string>
+#include <limits>
 
 static_assert(sizeof(std::size_t) == 8, "Not on a 64-bit system");
+
+#ifdef CB_XOR_OPERAND
+#define CB_XOR_VALUE(x) x ^ CB_XOR_OPERAND
+#else
+#define CB_XOR_VALUE(x) x
+#endif
 
 namespace corned_beef
 {
@@ -26,6 +33,11 @@ namespace corned_beef
     template<typename T>
     concept BasicValue = std::integral<T> || std::is_pointer_v<T>;
 
+    constexpr std::uint32_t Squish64To32Bit(std::uint64_t v)
+    {
+        return (v & std::numeric_limits<std::uint32_t>::max()) ^ (v >> 32);
+    }
+
     /**
      * @brief Hash for integral types
      * 
@@ -42,7 +54,10 @@ namespace corned_beef
          */
         constexpr std::size_t operator()(T val) const
         {
-            return static_cast<std::size_t>(val);
+            if constexpr (sizeof(T) > sizeof(std::size_t))
+                return CB_XOR_VALUE(static_cast<std::size_t>(Squish64To32Bit(static_cast<std::uint64_t>(val))));
+            else
+                return CB_XOR_VALUE(static_cast<std::size_t>(val));
         }
     };
     
@@ -60,7 +75,10 @@ namespace corned_beef
          */
         constexpr std::size_t operator()(double val) const
         {
-            return std::bit_cast<std::size_t>(val);
+            if constexpr (sizeof(double) > sizeof(std::size_t))
+                return CB_XOR_VALUE(static_cast<std::size_t>(Squish64To32Bit(std::bit_cast<std::uint64_t>(val))));
+            else
+                return CB_XOR_VALUE(std::bit_cast<std::size_t>(val));
         }
     };
 
@@ -78,7 +96,7 @@ namespace corned_beef
          */
         constexpr std::size_t operator()(float val) const
         {
-            return std::bit_cast<std::uint32_t>(val);
+            return CB_XOR_VALUE(std::bit_cast<std::uint32_t>(val));
         }
     };
 
@@ -90,15 +108,21 @@ namespace corned_beef
     template<typename T>
     concept TrivialCopy = std::is_trivially_copyable_v<T> && (sizeof(T) > 0) && !std::floating_point<T> && !std::integral<T>;
 
+    static constexpr std::size_t ONE_LESS_SIZE = sizeof(std::size_t) - 1;
+    static constexpr std::size_t LOG2_SIZE = 2 | (sizeof(std::size_t) >> 3);
+    static constexpr std::size_t SIZE_BITS = sizeof(std::size_t) >> LOG2_SIZE;
+    static constexpr std::size_t SIZE_BITS_SUB_ONE = SIZE_BITS - 1;
+    static constexpr std::size_t SIZE_BITS_SUB_ONE_LSH_TWO = SIZE_BITS_SUB_ONE << 2;
+
     /**
      * @brief Calculates next number divisible by 8
      * 
      * @param val Value
      * @return consteval std::size_t Calculated value
      */
-    static constexpr std::size_t NextNDivBy8(std::size_t val)
+    static constexpr std::size_t NextNDivBySize(std::size_t val)
     {
-        return (val + 7) & ~7;
+        return (val + ONE_LESS_SIZE) & ~ONE_LESS_SIZE;
     }
 
     /**
@@ -130,8 +154,8 @@ namespace corned_beef
          */
         constexpr std::size_t operator()(const T& val) const
         {
-            const std::size_t size = NextNDivBy8(sizeof(T));
-            const std::size_t count = size >> 3;
+            const std::size_t size = NextNDivBySize(sizeof(T));
+            const std::size_t count = size >> LOG2_SIZE;
             std::size_t data[count] = {0};
 
             std::memcpy(data, &val, sizeof(T));
@@ -140,10 +164,10 @@ namespace corned_beef
 
             for (size_t i = 1; i < count; ++i)
             {
-                retVal = CombineHashes(retVal, data[i], i & 64);
+                retVal = CombineHashes(retVal, data[i], i & SIZE_BITS);
             }
 
-            return retVal;
+            return CB_XOR_VALUE(retVal);
         }
     };
 
@@ -165,10 +189,10 @@ namespace corned_beef
 
             for (std::size_t i = 0; i < str.size(); ++i)
             {
-                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), ((static_cast<std::uint_fast8_t>(i & 0b111) << 3) + (static_cast<std::uint_fast8_t>(i & 0b11111100) >> 2)));
+                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), ((static_cast<std::uint_fast8_t>(i & ONE_LESS_SIZE) << 3) + (static_cast<std::uint_fast8_t>(i & SIZE_BITS_SUB_ONE_LSH_TWO) >> 2)));
             }
 
-            return retVal;
+            return CB_XOR_VALUE(retVal);
         }
     };
 
@@ -180,7 +204,7 @@ namespace corned_beef
     {
         /**
          * @brief Hash fucntion
-         * 
+         * @attention For use with strings only containing ASCII characters. Can be used with strings containing non-ASCII characters but theoretically may increase collisions.
          * @param str String input
          * @return std::size_t Hashing result
          */
@@ -192,10 +216,10 @@ namespace corned_beef
             for (std::size_t i = 0; i < str.size(); ++i)
             {
                 retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
-                offset = (offset + 7) & 63;
+                offset = (offset + 7) & SIZE_BITS_SUB_ONE;
             }
 
-            return retVal;
+            return CB_XOR_VALUE(retVal);
         }
     };
 
@@ -215,14 +239,12 @@ namespace corned_beef
         {
             std::size_t retVal = 0;
 
-            std::uint_fast8_t offset = 0;
             for (std::size_t i = 0; str[i]; ++i)
             {
-                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
-                offset = (offset + 7) & 63;
+                retVal ^= std::rotl(static_cast<std::size_t>(str[i]), ((static_cast<std::uint_fast8_t>(i & ONE_LESS_SIZE) << 3) + (static_cast<std::uint_fast8_t>(i & SIZE_BITS_SUB_ONE_LSH_TWO) >> 2)));
             }
 
-            return retVal;
+            return CB_XOR_VALUE(retVal);
         }
     };
 
@@ -234,7 +256,7 @@ namespace corned_beef
     {
         /**
          * @brief Hash fucntion
-         * 
+         * @attention For use with strings only containing ASCII characters. Can be used with strings containing non-ASCII characters but theoretically may increase collisions.
          * @param str C-string input
          * @return std::size_t Hashing result
          */
@@ -246,10 +268,10 @@ namespace corned_beef
             for (std::size_t i = 0; str[i]; ++i)
             {
                 retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
-                offset = (offset + 7) & 63;
+                offset = (offset + 7) & SIZE_BITS_SUB_ONE;
             }
 
-            return retVal;
+            return CB_XOR_VALUE(retVal);
         }
     };
 
