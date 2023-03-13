@@ -26,6 +26,7 @@
 #include <vector>
 #include <iostream>
 #include <tuple>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -110,6 +111,11 @@ TEST(BasicHashTest, CStr)
 TEST(BasicHashTest, CStrASCII)
 {
     EXPECT_NE((cb::HashThis<const char*, cb::HashCStrASCII>("test1")), (cb::HashThis<const char*, cb::HashCStrASCII>("test2")));
+}
+
+TEST(BasicHashTest, Range)
+{
+    EXPECT_NO_THROW((cb::HashRange<std::vector<int>>{}({ 1, 539, 1230981, 123, 5873, 18346, 1577710 })));
 }
 
 class HashStringTest : public ::testing::Test

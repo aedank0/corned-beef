@@ -23,6 +23,9 @@
 #include <cstring>
 #include <string>
 #include <limits>
+#include <ranges>
+#include <utility>
+#include <algorithm>
 
 //CB_XOR_OPERAND should be an integer if it is defined. If it is defined, the output of all hashes will be XOR'd by the value.
 #ifdef CB_XOR_OPERAND
@@ -164,6 +167,51 @@ namespace corned_beef
     }
 
     /**
+     * @brief Combines any number of hashes together, offsetting each
+     * 
+     * @tparam Args std::size_t only
+     * @param args Hashes to be combined
+     * @return constexpr std::size_t Result
+     */
+    template<std::same_as<std::size_t>... Args>
+    static constexpr std::size_t CombineHashes(Args... args)
+    {
+        auto impl = [&]<std::size_t... I>(std::index_sequence<I...>) constexpr
+        {
+            std::size_t retVal = (std::rotl(args, I * std::max(SIZE_BITS / sizeof...(Args), std::size_t(1))) ^ ...);
+
+            return retVal;
+        };
+
+        return impl(std::index_sequence_for<Args...>());
+    }
+
+    /**
+     * @brief Combines any number of hashes in an std::range, offsetting each
+     * 
+     * @tparam R Range type, must have begin(), end(), and size() functions defined
+     * @param r range of std::size_t hashes
+     * @return std::size_t Result
+     */
+    template<std::ranges::range R>
+        requires requires(R r)
+        {
+            { *(r.begin()) } -> std::same_as<std::size_t&>;
+            { r.size() } -> std::same_as<std::size_t>;
+        }
+    static constexpr std::size_t CombineHashes(const R& r)
+    {
+        std::size_t retVal = 0;
+
+        for (const std::size_t& v : r)
+        {
+            retVal ^= std::rotl(v, static_cast<int>(std::max(SIZE_BITS / r.size(), std::size_t(1))));
+        }
+
+        return retVal;
+    }
+
+    /**
      * @brief Hash for trivially copyable types.
      * 
      * @tparam T Trivially copyable type
@@ -294,6 +342,40 @@ namespace corned_beef
             {
                 retVal ^= std::rotl(static_cast<std::size_t>(str[i]), offset);
                 offset = (offset + 7) & SIZE_BITS_SUB_ONE;
+            }
+
+            return CB_XOR_VALUE(retVal);
+        }
+    };
+
+    /**
+     * @brief Hash for ranges
+     * 
+     * @tparam R Range type
+     * @tparam ElemT Type of element in range
+     * @tparam ElemHash Hash for elements
+     */
+    template<std::ranges::range R, typename ElemT = R::value_type, typename ElemHash = Hash<ElemT>>
+        requires requires(R r, ElemT e)
+        {
+            { *(r.begin()) } -> std::same_as<ElemT&>;
+            { r.size() } -> std::same_as<std::size_t>;
+            { ElemHash{}(e) } -> std::same_as<std::size_t>;
+        }
+    struct HashRange
+    {
+        /**
+         * @brief Hash function
+         * @param range Range to hash
+         * @return std::size_t Hashing result
+         */
+        constexpr std::size_t operator()(const R& range) const
+        {
+            std::size_t retVal = 0;
+
+            for (const auto& e : range)
+            {
+                retVal ^= std::rotl(ElemHash{}(e), static_cast<int>(std::max(SIZE_BITS / range.size(), std::size_t(1))));
             }
 
             return CB_XOR_VALUE(retVal);
