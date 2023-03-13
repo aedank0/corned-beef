@@ -36,12 +36,12 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(testing WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
-find_package(Doxygen)
-
 option(CB_BUILD_DOCS "Should documentation be build (most likely yes!)" ON)
 option(CB_COMPILE_COLLISION_TESTS "Should collision tests be compiled?")
 
 if(CB_BUILD_DOCS)
+    find_package(Doxygen)
+    
     if(DOXYGEN_FOUND)
         set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/docs")
 
