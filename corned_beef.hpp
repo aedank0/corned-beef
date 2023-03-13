@@ -133,6 +133,7 @@ namespace corned_beef
     static constexpr std::size_t ONE_LESS_SIZE = sizeof(std::size_t) - 1;
     static constexpr std::size_t LOG2_SIZE = 2 | (sizeof(std::size_t) >> 3);
     static constexpr std::size_t SIZE_BITS = sizeof(std::size_t) >> LOG2_SIZE;
+    static constexpr std::size_t SIZE_BITS_HALF = sizeof(std::size_t) >> 1;
     static constexpr std::size_t SIZE_BITS_SUB_ONE = SIZE_BITS - 1;
     static constexpr std::size_t SIZE_BITS_SUB_ONE_LSH_TWO = SIZE_BITS_SUB_ONE << 2;
 
@@ -157,7 +158,7 @@ namespace corned_beef
      * @param rotAmt Amount to rotate second hash before combining (in bits)
      * @return constexpr std::size_t Resulting hash
      */
-    static constexpr std::size_t CombineHashes(std::size_t a, std::size_t b, int rotAmt = 32)
+    static constexpr std::size_t CombineHashes(std::size_t a, std::size_t b, int rotAmt = static_cast<int>(SIZE_BITS_HALF))
     {
         return a ^ std::rotl(b, rotAmt);
     }
